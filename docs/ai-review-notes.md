@@ -1,4 +1,4 @@
-# AI review notes (DRAFT – rewrite in your own words)
+# AI review notes
 
 Real incidents from this project: what went wrong, how it was caught, the rule I took from it.
 
