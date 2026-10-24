@@ -29,7 +29,7 @@ Senior QA Tester to Integration Test Engineer, with a focus on
 
 ## How to run
 
-1. Import the Postman collection ![`postman/Vacation API - testovací sada.postman_collection.json`](postman/Vacation API - testovací sada.postman_collection.json) and set the collection variable `baseUrl`.
+1. Import the Postman collection `postman/Vacation API - testovací sada.postman_collection.json` and set the collection variable `baseUrl`.
 2. Regression: Runner → folder *Data-Driven Testing* → data file `data/regression_table.csv` → 31 iterations.
    Expected: 217 tests, 21 failed (all tagged `[BUG-n]`).
 3. Chain/loop: Runner → folder *Smyčka H1 → V2* → **1 iteration, no data file**
