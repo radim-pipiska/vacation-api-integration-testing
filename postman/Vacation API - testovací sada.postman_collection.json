@@ -1,0 +1,1328 @@
+{
+  "info": {
+    "_postman_id": "16d12fad-4b1e-4252-865d-c6da55060a19",
+    "name": "Vacation API - testovací sada (demo)",
+    "description": "Vygenerováno jako ukázka výstupu z finálního promptu. Spouštět v pořadí dle složek / RUN_ORDER, respektovat závislosti (viz komentáře v testech).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37519529"
+  },
+  "item": [
+    {
+      "name": "dynamická data z pre_requestu",
+      "item": [
+        {
+          "name": "Test 1: pre-request pro dynamické proměnné",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// --- KONFIGURACE TESTOVACÍHO DATA ---",
+                  "// Odkomentujte konkrétní řádek pro otestování požadovaného scénáře v Postman konzoli.",
+                  "// const mockToday = \"2026-10-07\"; // Příklad 1: Dnes st -> From: 2026-10-08 (čt), To: 2026-10-14 (st)",
+                  "// const mockToday = \"2026-10-11\"; // Příklad 2: From: 2026-10-12 (po) -> To: 2026-10-16 (pá)",
+                  "// const mockToday = \"2027-09-26\"; // Příklad 3: 28.9. je svátek v út (týden vyřazen) -> From: 2027-10-04 (po), To: 2027-10-08 (pá)",
+                  "// const mockToday = \"2028-02-27\"; // Příklad 4: Přestupný rok protíná 29.2. -> From: 2028-02-28 (po), To: 2028-03-03 (pá)",
+                  "// const mockToday = \"2028-02-01\"; // Příklad 5: Přestupný rok bez protnutí 29.2. -> From: 2028-02-02 (st), To: 2028-02-08 (út)",
+                  "// const mockToday = \"2026-12-14\"; // Oprava chyby: Vánoce vyřadí týdny -> From: 2027-01-04 (po), To: 2027-01-08 (pá)",
+                  "// const mockToday = \"2027-05-02\"; // Oprava víkendu: Svátek 8.5. je v sobotu -> Týden se NEVYŘAZUJE -> From: 2027-05-03, To: 2027-05-07",
+                  "// const mockToday = \"2028-07-04\"; // Svátky st 5.7. a čt 6.7. -> týden 3.–9.7. vyřazen -> From: 2028-07-10 (po), To: 2028-07-14 (pá)",
+                  "// const mockToday = \"2028-12-29\";// Týdny 25.–31.12. a 1.–7.1. vyřazeny, začátek by byl až 2029 -> OČEKÁVANÁ CHYBA: mimo rozsah kalendáře",
+                  "// const mockToday = \"2026-10-07\";",
+                  "",
+                  "let today;",
+                  "if (typeof mockToday !== 'undefined' && mockToday) {",
+                  "    today = new Date(mockToday + \"T00:00:00Z\");",
+                  "} else {",
+                  "    const now = new Date();",
+                  "    today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));",
+                  "}",
+                  "",
+                  "// --- VALIDACE ROZSAHU KALENDÁŘE (2026 - 2028) ---",
+                  "function validateYearRange(date, contextName) {",
+                  "    const year = date.getUTCFullYear();",
+                  "    if (year < 2026 || year > 2028) {",
+                  "        throw new Error(`[QA ERROR] Datum pro '${contextName}' (${year}) je mimo povolený rozsah kalendáře 2026-2028!`);",
+                  "    }",
+                  "}",
+                  "validateYearRange(today, \"Dnešní datum (today)\");",
+                  "",
+                  "// --- DEFINICE ČESKÝCH STÁTNÍCH SVÁTKŮ ---",
+                  "function getCzechHolidayName(date) {",
+                  "    const month = date.getUTCMonth() + 1;",
+                  "    const day = date.getUTCDate();",
+                  "    const year = date.getUTCFullYear();",
+                  "    ",
+                  "    if (month === 1 && day === 1) return \"Den obnovy samostatného českého státu a Nový rok\";",
+                  "    if (month === 5 && day === 1) return \"Svátek práce\";",
+                  "    if (month === 5 && day === 8) return \"Den vítězství\";",
+                  "    if (month === 7 && day === 5) return \"Den slovanských věrozvěstů Cyrila a Metoděje\";",
+                  "    if (month === 7 && day === 6) return \"Den upálení mistra Jana Husa\";",
+                  "    if (month === 9 && day === 28) return \"Den české státnosti (svátek sv. Václava)\";",
+                  "    if (month === 10 && day === 28) return \"Den vzniku samostatného československého státu\";",
+                  "    if (month === 11 && day === 17) return \"Den boje za svobodu a demokracii\";",
+                  "    if (month === 12 && day === 24) return \"Štědrý den\";",
+                  "    if (month === 12 && day === 25) return \"1. svátek vánoční\";",
+                  "    if (month === 12 && day === 26) return \"2. svátek vánoční\";",
+                  "",
+                  "    if (year === 2026) {",
+                  "        if (month === 4 && day === 3) return \"Velký pátek\";",
+                  "        if (month === 4 && day === 6) return \"Velikonoční pondělí\";",
+                  "    }",
+                  "    if (year === 2027) {",
+                  "        if (month === 3 && day === 26) return \"Velký pátek\";",
+                  "        if (month === 3 && day === 29) return \"Velikonoční pondělí\";",
+                  "    }",
+                  "    if (year === 2028) {",
+                  "        if (month === 4 && day === 14) return \"Velký pátek\";",
+                  "        if (month === 4 && day === 17) return \"Velikonoční pondělí\";",
+                  "    }",
+                  "    return null;",
+                  "}",
+                  "",
+                  "function addDays(date, days) {",
+                  "    const result = new Date(date.getTime());",
+                  "    result.setUTCDate(result.getUTCDate() + days);",
+                  "    return result;",
+                  "}",
+                  "",
+                  "function getMondayOfWeeksISO(date) {",
+                  "    const result = new Date(date.getTime());",
+                  "    const day = result.getUTCDay();",
+                  "    const dayDiff = day === 0 ? -6 : 1 - day;",
+                  "    result.setUTCDate(result.getUTCDate() + dayDiff);",
+                  "    return result;",
+                  "}",
+                  "",
+                  "function formatDate(date) {",
+                  "    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;",
+                  "}",
+                  "",
+                  "// --- KONTROLA POVOLENÉHO TÝDNE (Svátek v pracovní den vyřazuje týden) ---",
+                  "const loggedWeeks = new Set();",
+                  "",
+                  "function isWeekAllowed(date) {",
+                  "    const monday = getMondayOfWeeksISO(date);",
+                  "    const mondayStr = formatDate(monday);",
+                  "    ",
+                  "    // Prohledáváme pouze pracovní dny Po-Pá (index 1 až 5)",
+                  "    for (let i = 0; i < 5; i++) {",
+                  "        const currentWorkingDay = addDays(monday, i);",
+                  "        const holidayName = getCzechHolidayName(currentWorkingDay);",
+                  "        ",
+                  "        if (holidayName) {",
+                  "            if (!loggedWeeks.has(mondayStr)) {",
+                  "                const sundayStr = formatDate(addDays(monday, 6));",
+                  "                console.warn(`[Skip Week] Týden ${mondayStr} až ${sundayStr} BYL VYNECHÁN. Svátek v prac. den: ${formatDate(currentWorkingDay)} (${holidayName}).`);",
+                  "                loggedWeeks.add(mondayStr);",
+                  "            }",
+                  "            return false;",
+                  "        }",
+                  "    }",
+                  "    return true;",
+                  "}",
+                  "",
+                  "function isBusinessDay(date) {",
+                  "    const day = date.getUTCDay();",
+                  "    return day !== 0 && day !== 6;",
+                  "}",
+                  "",
+                  "// --- VÝPOČET TERMÍNU DOVOLENÉ ---",
+                  "let dateFromObj = null;",
+                  "let dateToObj = null;",
+                  "",
+                  "// Hledáme ucelený blok 5 po sobě jdoucích pracovních dnů v povolených týdnech",
+                  "let currentCheckDate = addDays(today, 1);",
+                  "",
+                  "while (dateFromObj === null) {",
+                  "    if (isWeekAllowed(currentCheckDate) && isBusinessDay(currentCheckDate)) {",
+                  "        let candidateFrom = new Date(currentCheckDate.getTime());",
+                  "        let candidateTo = new Date(currentCheckDate.getTime());",
+                  "        let daysFound = 1;",
+                  "        let isValidSequence = true;",
+                  "",
+                  "        while (daysFound < 5) {",
+                  "            candidateTo = addDays(candidateTo, 1);",
+                  "            if (isBusinessDay(candidateTo)) {",
+                  "                if (isWeekAllowed(candidateTo)) {",
+                  "                    daysFound++;",
+                  "                } else {",
+                  "                    isValidSequence = false;",
+                  "                    break;",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "",
+                  "        if (isValidSequence && daysFound === 5) {",
+                  "            dateFromObj = candidateFrom;",
+                  "            dateToObj = candidateTo;",
+                  "        } else {",
+                  "            currentCheckDate = addDays(getMondayOfWeeksISO(candidateTo), 7);",
+                  "        }",
+                  "    } else {",
+                  "        if (!isWeekAllowed(currentCheckDate)) {",
+                  "            currentCheckDate = addDays(getMondayOfWeeksISO(currentCheckDate), 7);",
+                  "        } else {",
+                  "            currentCheckDate = addDays(currentCheckDate, 1);",
+                  "        }",
+                  "    }",
+                  "}",
+                  "",
+                  "validateYearRange(dateFromObj, \"Vypočtené dateFrom\");",
+                  "validateYearRange(dateToObj, \"Vypočtené dateTo\");",
+                  "",
+                  "const dateFromStr = formatDate(dateFromObj);",
+                  "const dateToStr = formatDate(dateToObj);",
+                  "",
+                  "// --- VERIFIKACE INVARIANTŮ (Tvrdé QA testování před uložením) ---",
+                  "let totalWorkingDays = 0;",
+                  "let checkDate = new Date(dateFromObj.getTime());",
+                  "while (checkDate.getTime() <= dateToObj.getTime()) {",
+                  "    if (isBusinessDay(checkDate)) {",
+                  "        totalWorkingDays++;",
+                  "    }",
+                  "    if (!isWeekAllowed(checkDate)) {",
+                  "        throw new Error(`[QA CRITICAL ERROR] Vygenerovaný interval obsahuje den v zakázaném týdnu: ${formatDate(checkDate)}!`);",
+                  "    }",
+                  "    checkDate = addDays(checkDate, 1);",
+                  "}",
+                  "",
+                  "if (totalWorkingDays !== 5) {",
+                  "    throw new Error(`[QA CRITICAL ERROR] Vygenerovaný rozsah neodpovídá přesně 5 pracovním dnům! Skutečnost: ${totalWorkingDays} dnů (${dateFromStr} -> ${dateToStr}).`);",
+                  "}",
+                  "",
+                  "// --- LOGOVÁNÍ HRANIČNÍCH PŘÍPADŮ DO KONZOLE ---",
+                  "console.log(`[QA Info] Vstupní testovací datum (dnes): ${formatDate(today)}`);",
+                  "console.log(`[QA Info] Výsledek úspěšně ověřen -> dateFrom: ${dateFromStr} | dateTo: ${dateToStr}`);",
+                  "",
+                  "let containsLeapDay = false;",
+                  "let leapCheck = new Date(dateFromObj.getTime());",
+                  "while (leapCheck.getTime() <= dateToObj.getTime()) {",
+                  "    if (leapCheck.getUTCFullYear() === 2028 && leapCheck.getUTCMonth() === 1 && leapCheck.getUTCDate() === 29) {",
+                  "        containsLeapDay = true;",
+                  "        break;",
+                  "    }",
+                  "    leapCheck = addDays(leapCheck, 1);",
+                  "}",
+                  "if (containsLeapDay) {",
+                  "    console.warn(`[Edge Case] Vygenerovaná data přímo obsahují přestupný den 29. února 2028.`);",
+                  "}",
+                  "",
+                  "if (dateFromObj.getUTCMonth() !== dateToObj.getUTCMonth()) {",
+                  "    console.warn(`[Edge Case] Detekován PŘELOM MĚSÍCE uvnitř vygenerovaného rozsahu.`);",
+                  "}",
+                  "",
+                  "// --- ULOŽENÍ DO LOKÁLNÍCH PROMĚNNÝCH POSTMANA ---",
+                  "pm.variables.set(\"dateFrom\", dateFromStr);",
+                  "pm.variables.set(\"dateTo\", dateToStr);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ===== 0. Vstupy: lokální proměnné nastavené v pre-request skriptu =====",
+                  "const dateFromStr = pm.variables.get(\"dateFrom\");",
+                  "const dateToStr   = pm.variables.get(\"dateTo\");",
+                  "",
+                  "// ===== 1. Očekávané pracovní dny (počítáno nezávisle na pre-request skriptu) =====",
+                  "function getExpectedWorkingDays(startStr, endStr) {",
+                  "    const days = [];",
+                  "    const current = new Date(startStr + \"T00:00:00Z\");",
+                  "    const end = new Date(endStr + \"T00:00:00Z\");",
+                  "    while (current <= end) {",
+                  "        const dow = current.getUTCDay(); // 0 = neděle, 6 = sobota",
+                  "        if (dow !== 0 && dow !== 6) {",
+                  "            days.push(current.toISOString().split(\"T\")[0]);",
+                  "        }",
+                  "        current.setUTCDate(current.getUTCDate() + 1);",
+                  "    }",
+                  "    return days;",
+                  "}",
+                  "const expectedDays = getExpectedWorkingDays(dateFromStr, dateToStr);",
+                  "",
+                  "// Test 0: pojistka, ať chybějící proměnná selže srozumitelně",
+                  "pm.test(\"Vstupní proměnné dateFrom a dateTo existují\", function () {",
+                  "    pm.expect(dateFromStr, \"chybí lokální proměnná dateFrom\").to.be.a(\"string\");",
+                  "    pm.expect(dateToStr, \"chybí lokální proměnná dateTo\").to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "// Test 1: Ověření úspěšného HTTP statusu",
+                  "pm.test(\"Status kód je 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test 2: Validace JSON struktury a počtu vrácených dní",
+                  "pm.test(\"Response struktura je validní a obsahuje 5 dní\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('Message').and.to.be.a('string');",
+                  "    pm.expect(jsonData).to.have.property('MarkedDays').and.to.be.an('array');",
+                  "    pm.expect(jsonData.MarkedDays).to.have.lengthOf(5);",
+                  "});",
+                  "",
+                  "// Test 3: Formát a přesná shoda dní s očekávanými z proměnných",
+                  "pm.test(\"Pole MarkedDays obsahuje správné dny a vynechává víkendy\", function () {",
+                  "    const actualDays = pm.response.json().MarkedDays;",
+                  "    const dateFormatRegex = /^\\d{4}-\\d{2}-\\d{2}$/;",
+                  "",
+                  "    pm.expect(actualDays.length).to.eql(expectedDays.length,",
+                  "        `API vrátilo ${actualDays.length} dní, ale výpočtem z proměnných jich má být ${expectedDays.length}`);",
+                  "",
+                  "    actualDays.forEach(function (day, index) {",
+                  "        pm.expect(day).to.match(dateFormatRegex, `Index [${index}] neodpovídá formátu YYYY-MM-DD`);",
+                  "        pm.expect(day).to.eql(expectedDays[index],",
+                  "            `Chyba na indexu [${index}]. Očekáváno: ${expectedDays[index]}, Realita: ${day}`);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PersonId\": \"{{personId}}\",\n  \"DateFrom\": \"{{dateFrom}}\",\n  \"DateTo\": \"{{dateTo}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Vacation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "Vacation"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "API Chaining",
+      "item": [
+        {
+          "name": "Test 2: API Chaining (H1)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// --- KONFIGURACE TESTOVACÍHO DATA ---\r",
+                  "// Odkomentujte konkrétní řádek pro otestování požadovaného scénáře v Postman konzoli.\r",
+                  "// const mockToday = \"2026-10-07\"; // Příklad 1: Dnes st -> From: 2026-10-08 (čt), To: 2026-10-14 (st)\r",
+                  "// const mockToday = \"2026-10-11\"; // Příklad 2: From: 2026-10-12 (po) -> To: 2026-10-16 (pá)\r",
+                  "// const mockToday = \"2027-09-26\"; // Příklad 3: 28.9. je svátek v út (týden vyřazen) -> From: 2027-10-04 (po), To: 2027-10-08 (pá)\r",
+                  "// const mockToday = \"2028-02-27\"; // Příklad 4: Přestupný rok protíná 29.2. -> From: 2028-02-28 (po), To: 2028-03-03 (pá)\r",
+                  "// const mockToday = \"2028-02-01\"; // Příklad 5: Přestupný rok bez protnutí 29.2. -> From: 2028-02-02 (st), To: 2028-02-08 (út)\r",
+                  "// const mockToday = \"2026-12-14\"; // Oprava chyby: Vánoce vyřadí týdny -> From: 2027-01-04 (po), To: 2027-01-08 (pá)\r",
+                  "// const mockToday = \"2027-05-02\"; // Oprava víkendu: Svátek 8.5. je v sobotu -> Týden se NEVYŘAZUJE -> From: 2027-05-03, To: 2027-05-07\r",
+                  "// const mockToday = \"2028-07-04\"; // Svátky st 5.7. a čt 6.7. -> týden 3.–9.7. vyřazen -> From: 2028-07-10 (po), To: 2028-07-14 (pá)\r",
+                  "// const mockToday = \"2028-12-29\";// Týdny 25.–31.12. a 1.–7.1. vyřazeny, začátek by byl až 2029 -> OČEKÁVANÁ CHYBA: mimo rozsah kalendáře\r",
+                  "// const mockToday = \"2026-10-17\";\r",
+                  "\r",
+                  "let today;\r",
+                  "if (typeof mockToday !== 'undefined' && mockToday) {\r",
+                  "    today = new Date(mockToday + \"T00:00:00Z\");\r",
+                  "} else {\r",
+                  "    const now = new Date();\r",
+                  "    today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));\r",
+                  "}\r",
+                  "\r",
+                  "// --- VALIDACE ROZSAHU KALENDÁŘE (2026 - 2028) ---\r",
+                  "function validateYearRange(date, contextName) {\r",
+                  "    const year = date.getUTCFullYear();\r",
+                  "    if (year < 2026 || year > 2028) {\r",
+                  "        throw new Error(`[QA ERROR] Datum pro '${contextName}' (${year}) je mimo povolený rozsah kalendáře 2026-2028!`);\r",
+                  "    }\r",
+                  "}\r",
+                  "validateYearRange(today, \"Dnešní datum (today)\");\r",
+                  "\r",
+                  "// --- DEFINICE ČESKÝCH STÁTNÍCH SVÁTKŮ ---\r",
+                  "function getCzechHolidayName(date) {\r",
+                  "    const month = date.getUTCMonth() + 1;\r",
+                  "    const day = date.getUTCDate();\r",
+                  "    const year = date.getUTCFullYear();\r",
+                  "    \r",
+                  "    if (month === 1 && day === 1) return \"Den obnovy samostatného českého státu a Nový rok\";\r",
+                  "    if (month === 5 && day === 1) return \"Svátek práce\";\r",
+                  "    if (month === 5 && day === 8) return \"Den vítězství\";\r",
+                  "    if (month === 7 && day === 5) return \"Den slovanských věrozvěstů Cyrila a Metoděje\";\r",
+                  "    if (month === 7 && day === 6) return \"Den upálení mistra Jana Husa\";\r",
+                  "    if (month === 9 && day === 28) return \"Den české státnosti (svátek sv. Václava)\";\r",
+                  "    if (month === 10 && day === 28) return \"Den vzniku samostatného československého státu\";\r",
+                  "    if (month === 11 && day === 17) return \"Den boje za svobodu a demokracii\";\r",
+                  "    if (month === 12 && day === 24) return \"Štědrý den\";\r",
+                  "    if (month === 12 && day === 25) return \"1. svátek vánoční\";\r",
+                  "    if (month === 12 && day === 26) return \"2. svátek vánoční\";\r",
+                  "\r",
+                  "    if (year === 2026) {\r",
+                  "        if (month === 4 && day === 3) return \"Velký pátek\";\r",
+                  "        if (month === 4 && day === 6) return \"Velikonoční pondělí\";\r",
+                  "    }\r",
+                  "    if (year === 2027) {\r",
+                  "        if (month === 3 && day === 26) return \"Velký pátek\";\r",
+                  "        if (month === 3 && day === 29) return \"Velikonoční pondělí\";\r",
+                  "    }\r",
+                  "    if (year === 2028) {\r",
+                  "        if (month === 4 && day === 14) return \"Velký pátek\";\r",
+                  "        if (month === 4 && day === 17) return \"Velikonoční pondělí\";\r",
+                  "    }\r",
+                  "    return null;\r",
+                  "}\r",
+                  "\r",
+                  "function addDays(date, days) {\r",
+                  "    const result = new Date(date.getTime());\r",
+                  "    result.setUTCDate(result.getUTCDate() + days);\r",
+                  "    return result;\r",
+                  "}\r",
+                  "\r",
+                  "function getMondayOfWeeksISO(date) {\r",
+                  "    const result = new Date(date.getTime());\r",
+                  "    const day = result.getUTCDay();\r",
+                  "    const dayDiff = day === 0 ? -6 : 1 - day;\r",
+                  "    result.setUTCDate(result.getUTCDate() + dayDiff);\r",
+                  "    return result;\r",
+                  "}\r",
+                  "\r",
+                  "function formatDate(date) {\r",
+                  "    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;\r",
+                  "}\r",
+                  "\r",
+                  "// --- KONTROLA POVOLENÉHO TÝDNE (Svátek v pracovní den vyřazuje týden) ---\r",
+                  "const loggedWeeks = new Set();\r",
+                  "\r",
+                  "function isWeekAllowed(date) {\r",
+                  "    const monday = getMondayOfWeeksISO(date);\r",
+                  "    const mondayStr = formatDate(monday);\r",
+                  "    \r",
+                  "    // Prohledáváme pouze pracovní dny Po-Pá (index 1 až 5)\r",
+                  "    for (let i = 0; i < 5; i++) {\r",
+                  "        const currentWorkingDay = addDays(monday, i);\r",
+                  "        const holidayName = getCzechHolidayName(currentWorkingDay);\r",
+                  "        \r",
+                  "        if (holidayName) {\r",
+                  "            if (!loggedWeeks.has(mondayStr)) {\r",
+                  "                const sundayStr = formatDate(addDays(monday, 6));\r",
+                  "                console.warn(`[Skip Week] Týden ${mondayStr} až ${sundayStr} BYL VYNECHÁN. Svátek v prac. den: ${formatDate(currentWorkingDay)} (${holidayName}).`);\r",
+                  "                loggedWeeks.add(mondayStr);\r",
+                  "            }\r",
+                  "            return false;\r",
+                  "        }\r",
+                  "    }\r",
+                  "    return true;\r",
+                  "}\r",
+                  "\r",
+                  "function isBusinessDay(date) {\r",
+                  "    const day = date.getUTCDay();\r",
+                  "    return day !== 0 && day !== 6;\r",
+                  "}\r",
+                  "\r",
+                  "// --- VÝPOČET TERMÍNU DOVOLENÉ ---\r",
+                  "let dateFromObj = null;\r",
+                  "let dateToObj = null;\r",
+                  "\r",
+                  "// Hledáme ucelený blok 5 po sobě jdoucích pracovních dnů v povolených týdnech\r",
+                  "let currentCheckDate = addDays(today, 1);\r",
+                  "\r",
+                  "while (dateFromObj === null) {\r",
+                  "    if (isWeekAllowed(currentCheckDate) && isBusinessDay(currentCheckDate)) {\r",
+                  "        let candidateFrom = new Date(currentCheckDate.getTime());\r",
+                  "        let candidateTo = new Date(currentCheckDate.getTime());\r",
+                  "        let daysFound = 1;\r",
+                  "        let isValidSequence = true;\r",
+                  "\r",
+                  "        while (daysFound < 5) {\r",
+                  "            candidateTo = addDays(candidateTo, 1);\r",
+                  "            if (isBusinessDay(candidateTo)) {\r",
+                  "                if (isWeekAllowed(candidateTo)) {\r",
+                  "                    daysFound++;\r",
+                  "                } else {\r",
+                  "                    isValidSequence = false;\r",
+                  "                    break;\r",
+                  "                }\r",
+                  "            }\r",
+                  "        }\r",
+                  "\r",
+                  "        if (isValidSequence && daysFound === 5) {\r",
+                  "            dateFromObj = candidateFrom;\r",
+                  "            dateToObj = candidateTo;\r",
+                  "        } else {\r",
+                  "            currentCheckDate = addDays(getMondayOfWeeksISO(candidateTo), 7);\r",
+                  "        }\r",
+                  "    } else {\r",
+                  "        if (!isWeekAllowed(currentCheckDate)) {\r",
+                  "            currentCheckDate = addDays(getMondayOfWeeksISO(currentCheckDate), 7);\r",
+                  "        } else {\r",
+                  "            currentCheckDate = addDays(currentCheckDate, 1);\r",
+                  "        }\r",
+                  "    }\r",
+                  "}\r",
+                  "\r",
+                  "validateYearRange(dateFromObj, \"Vypočtené dateFrom\");\r",
+                  "validateYearRange(dateToObj, \"Vypočtené dateTo\");\r",
+                  "\r",
+                  "const dateFromStr = formatDate(dateFromObj);\r",
+                  "const dateToStr = formatDate(dateToObj);\r",
+                  "\r",
+                  "// --- VERIFIKACE INVARIANTŮ (Tvrdé QA testování před uložením) ---\r",
+                  "let totalWorkingDays = 0;\r",
+                  "let checkDate = new Date(dateFromObj.getTime());\r",
+                  "while (checkDate.getTime() <= dateToObj.getTime()) {\r",
+                  "    if (isBusinessDay(checkDate)) {\r",
+                  "        totalWorkingDays++;\r",
+                  "    }\r",
+                  "    if (!isWeekAllowed(checkDate)) {\r",
+                  "        throw new Error(`[QA CRITICAL ERROR] Vygenerovaný interval obsahuje den v zakázaném týdnu: ${formatDate(checkDate)}!`);\r",
+                  "    }\r",
+                  "    checkDate = addDays(checkDate, 1);\r",
+                  "}\r",
+                  "\r",
+                  "if (totalWorkingDays !== 5) {\r",
+                  "    throw new Error(`[QA CRITICAL ERROR] Vygenerovaný rozsah neodpovídá přesně 5 pracovním dnům! Skutečnost: ${totalWorkingDays} dnů (${dateFromStr} -> ${dateToStr}).`);\r",
+                  "}\r",
+                  "\r",
+                  "// --- LOGOVÁNÍ HRANIČNÍCH PŘÍPADŮ DO KONZOLE ---\r",
+                  "console.log(`[QA Info] Vstupní testovací datum (dnes): ${formatDate(today)}`);\r",
+                  "console.log(`[QA Info] Výsledek úspěšně ověřen -> dateFrom: ${dateFromStr} | dateTo: ${dateToStr}`);\r",
+                  "\r",
+                  "let containsLeapDay = false;\r",
+                  "let leapCheck = new Date(dateFromObj.getTime());\r",
+                  "while (leapCheck.getTime() <= dateToObj.getTime()) {\r",
+                  "    if (leapCheck.getUTCFullYear() === 2028 && leapCheck.getUTCMonth() === 1 && leapCheck.getUTCDate() === 29) {\r",
+                  "        containsLeapDay = true;\r",
+                  "        break;\r",
+                  "    }\r",
+                  "    leapCheck = addDays(leapCheck, 1);\r",
+                  "}\r",
+                  "if (containsLeapDay) {\r",
+                  "    console.warn(`[Edge Case] Vygenerovaná data přímo obsahují přestupný den 29. února 2028.`);\r",
+                  "}\r",
+                  "\r",
+                  "if (dateFromObj.getUTCMonth() !== dateToObj.getUTCMonth()) {\r",
+                  "    console.warn(`[Edge Case] Detekován PŘELOM MĚSÍCE uvnitř vygenerovaného rozsahu.`);\r",
+                  "}\r",
+                  "\r",
+                  "// --- ULOŽENÍ DO LOKÁLNÍCH PROMĚNNÝCH POSTMANA ---\r",
+                  "pm.variables.set(\"dateFrom\", dateFromStr);\r",
+                  "pm.variables.set(\"dateTo\", dateToStr);\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Smaž starou hodnotu, ať GET nikdy nepoužije data z minulého běhu",
+                  "pm.collectionVariables.unset('firstDay');",
+                  "pm.collectionVariables.unset('markedDays');",
+                  "",
+                  "pm.test('H1: zápis vrátil 200 a seznam dní', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const days = pm.response.json().MarkedDays;",
+                  "    pm.expect(days, 'MarkedDays chybí nebo je prázdné').to.be.an('array').that.is.not.empty;",
+                  "    pm.collectionVariables.set('firstDay', days[0]);",
+                  "    pm.collectionVariables.set('markedDays', JSON.stringify(days));",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PersonId\": \"{{personId}}\",\n  \"DateFrom\": \"{{dateFrom}}\",\n  \"DateTo\": \"{{dateTo}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Vacation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "Vacation"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test 2: API Chaining (V1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const firstDay = pm.collectionVariables.get(\"firstDay\");",
+                  "",
+                  "pm.test(\"Vstup: firstDay je k dispozici (nejdřív spusť H1)\", function () {",
+                  "    pm.expect(firstDay, \"chybí proměnná firstDay\").to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "pm.test(\"Status kód je 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Odpověď je validní JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Dovolená je zapsaná (IsVacation je true)\", function () {",
+                  "    pm.expect(pm.response.json().IsVacation).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Datum v odpovědi odpovídá firstDay\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.Date, \"odpověď neobsahuje Date\").to.be.a(\"string\");",
+                  "    pm.expect(body.Date).to.equal(firstDay);",
+                  "});",
+                  "",
+                  "pm.test(\"Datové typy v odpovědi jsou správné\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.Date).to.be.a(\"string\");",
+                  "    pm.expect(body.DayOfWeekCz).to.be.a(\"string\");",
+                  "    pm.expect(body.IsVacation).to.be.a(\"boolean\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/VacationCheck?personId={{personId}}&date={{firstDay}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "VacationCheck"
+              ],
+              "query": [
+                {
+                  "key": "personId",
+                  "value": "{{personId}}"
+                },
+                {
+                  "key": "date",
+                  "value": "{{firstDay}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Data-Driven Testing",
+      "item": [
+        {
+          "name": "DDT POST",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "if (pm.info.iteration === 0) {\r",
+                  "    pm.collectionVariables.set(\"ddtPerson\", \"RP\" + String(Date.now()).slice(-6));\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const date = pm.iterationData.get(\"date\");",
+                  "const raw = pm.iterationData.get(\"expectedMarkedCount\");",
+                  "const bug = pm.iterationData.get(\"knownBug\");",
+                  "const tag = bug ? \"[\" + bug + \"] \" : \"\";",
+                  "const person = pm.variables.get(\"ddtPerson\");",
+                  "",
+                  "pm.test(\"Vstup: expectedMarkedCount je celé číslo (spouštěj přes Runner)\", function () {",
+                  "    pm.expect(String(raw), \"hodnota z CSV: \" + JSON.stringify(raw)).to.match(/^\\d+$/);",
+                  "});",
+                  "const expectedCount = Number(raw);",
+                  "",
+                  "pm.test(\"POST: status je 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"POST: zapsané dny odpovídají tabulce\", function () {",
+                  "    const days = pm.response.json().MarkedDays;",
+                  "    const evidence = \" | MarkedDays=\" + JSON.stringify(days) + \" požadováno=\" + date + \" osoba=\" + person;",
+                  "    pm.expect(days, tag + \"MarkedDays chybí\" + evidence).to.be.an(\"array\");",
+                  "    const expected = expectedCount === 1 ? [date] : [];",
+                  "    pm.expect(days, tag + \"zapsané dny\" + evidence).to.eql(expected);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"PersonId\":\"{{ddtPerson}}\",\"DateFrom\":\"{{date}}\",\"DateTo\":\"{{date}}\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Vacation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "Vacation"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DDT-GET",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const date = pm.iterationData.get(\"date\");",
+                  "const raw = pm.iterationData.get(\"expectedIsVacation\");",
+                  "const bug = pm.iterationData.get(\"knownBug\");",
+                  "const tag = bug ? \"[\" + bug + \"] \" : \"\";",
+                  "const normalized = String(raw).trim().toLowerCase();",
+                  "const person = pm.variables.get(\"ddtPerson\");",
+                  "",
+                  "pm.test(\"Vstup: expectedIsVacation v CSV je true/false\", function () {",
+                  "    pm.expect([\"true\", \"false\"], \"neplatná hodnota v CSV: \" + JSON.stringify(raw)).to.include(normalized);",
+                  "});",
+                  "const expectedIsVacation = normalized === \"true\";",
+                  "",
+                  "pm.test(\"GET: status je 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"GET: datum v odpovědi odpovídá řádku tabulky\", function () {",
+                  "    const body = pm.response.json();",
+                  "    const evidence = \" | Date=\" + body.Date + \" požadováno=\" + date + \" osoba=\" + person;",
+                  "    pm.expect(body.Date, \"odpověď neobsahuje Date\" + evidence).to.be.a(\"string\");",
+                  "    pm.expect(body.Date, \"datum\" + evidence).to.equal(date);",
+                  "});",
+                  "",
+                  "pm.test(\"GET: IsVacation odpovídá tabulce\", function () {",
+                  "    const body = pm.response.json();",
+                  "    const evidence = \" | IsVacation=\" + body.IsVacation + \" požadováno=\" + date + \" osoba=\" + person;",
+                  "    pm.expect(body.IsVacation, tag + \"IsVacation chybí v odpovědi\" + evidence).to.be.a(\"boolean\");",
+                  "    pm.expect(body.IsVacation, tag + \"IsVacation\" + evidence).to.equal(expectedIsVacation);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/VacationCheck?personId={{ddtPerson}}&date={{date}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "VacationCheck"
+              ],
+              "query": [
+                {
+                  "key": "personId",
+                  "value": "{{ddtPerson}}"
+                },
+                {
+                  "key": "date",
+                  "value": "{{date}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Smyčka H1 → V2",
+      "item": [
+        {
+          "name": "H1 zápis (smyčka)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "//const mockToday = \"2028-05-08\";\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"personId\", \"RP\" + String(Date.now()).slice(-6));\r",
+                  "\r",
+                  "let today;\r",
+                  "if (typeof mockToday !== 'undefined' && mockToday) {\r",
+                  "    today = new Date(mockToday + \"T00:00:00Z\");\r",
+                  "} else {\r",
+                  "    const now = new Date();\r",
+                  "    today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));\r",
+                  "}\r",
+                  "\r",
+                  "// --- VALIDACE ROZSAHU KALENDÁŘE (2026 - 2028) ---\r",
+                  "function validateYearRange(date, contextName) {\r",
+                  "    const year = date.getUTCFullYear();\r",
+                  "    if (year < 2026 || year > 2028) {\r",
+                  "        throw new Error(`[QA ERROR] Datum pro '${contextName}' (${year}) je mimo povolený rozsah kalendáře 2026-2028!`);\r",
+                  "    }\r",
+                  "}\r",
+                  "validateYearRange(today, \"Dnešní datum (today)\");\r",
+                  "\r",
+                  "// --- DEFINICE ČESKÝCH STÁTNÍCH SVÁTKŮ ---\r",
+                  "function getCzechHolidayName(date) {\r",
+                  "    const month = date.getUTCMonth() + 1;\r",
+                  "    const day = date.getUTCDate();\r",
+                  "    const year = date.getUTCFullYear();\r",
+                  "    \r",
+                  "    if (month === 1 && day === 1) return \"Den obnovy samostatného českého státu a Nový rok\";\r",
+                  "    if (month === 5 && day === 1) return \"Svátek práce\";\r",
+                  "    if (month === 5 && day === 8) return \"Den vítězství\";\r",
+                  "    if (month === 7 && day === 5) return \"Den slovanských věrozvěstů Cyrila a Metoděje\";\r",
+                  "    if (month === 7 && day === 6) return \"Den upálení mistra Jana Husa\";\r",
+                  "    if (month === 9 && day === 28) return \"Den české státnosti (svátek sv. Václava)\";\r",
+                  "    if (month === 10 && day === 28) return \"Den vzniku samostatného československého státu\";\r",
+                  "    if (month === 11 && day === 17) return \"Den boje za svobodu a demokracii\";\r",
+                  "    if (month === 12 && day === 24) return \"Štědrý den\";\r",
+                  "    if (month === 12 && day === 25) return \"1. svátek vánoční\";\r",
+                  "    if (month === 12 && day === 26) return \"2. svátek vánoční\";\r",
+                  "\r",
+                  "    if (year === 2026) {\r",
+                  "        if (month === 4 && day === 3) return \"Velký pátek\";\r",
+                  "        if (month === 4 && day === 6) return \"Velikonoční pondělí\";\r",
+                  "    }\r",
+                  "    if (year === 2027) {\r",
+                  "        if (month === 3 && day === 26) return \"Velký pátek\";\r",
+                  "        if (month === 3 && day === 29) return \"Velikonoční pondělí\";\r",
+                  "    }\r",
+                  "    if (year === 2028) {\r",
+                  "        if (month === 4 && day === 14) return \"Velký pátek\";\r",
+                  "        if (month === 4 && day === 17) return \"Velikonoční pondělí\";\r",
+                  "    }\r",
+                  "    return null;\r",
+                  "}\r",
+                  "\r",
+                  "function addDays(date, days) {\r",
+                  "    const result = new Date(date.getTime());\r",
+                  "    result.setUTCDate(result.getUTCDate() + days);\r",
+                  "    return result;\r",
+                  "}\r",
+                  "\r",
+                  "function getMondayOfWeeksISO(date) {\r",
+                  "    const result = new Date(date.getTime());\r",
+                  "    const day = result.getUTCDay();\r",
+                  "    const dayDiff = day === 0 ? -6 : 1 - day;\r",
+                  "    result.setUTCDate(result.getUTCDate() + dayDiff);\r",
+                  "    return result;\r",
+                  "}\r",
+                  "\r",
+                  "function formatDate(date) {\r",
+                  "    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;\r",
+                  "}\r",
+                  "\r",
+                  "// --- KONTROLA POVOLENÉHO TÝDNE (Svátek v pracovní den vyřazuje týden) ---\r",
+                  "const loggedWeeks = new Set();\r",
+                  "\r",
+                  "function isWeekAllowed(date) {\r",
+                  "    const monday = getMondayOfWeeksISO(date);\r",
+                  "    const mondayStr = formatDate(monday);\r",
+                  "    \r",
+                  "    // Prohledáváme pouze pracovní dny Po-Pá (index 1 až 5)\r",
+                  "    for (let i = 0; i < 5; i++) {\r",
+                  "        const currentWorkingDay = addDays(monday, i);\r",
+                  "        const holidayName = getCzechHolidayName(currentWorkingDay);\r",
+                  "        \r",
+                  "        if (holidayName) {\r",
+                  "            if (!loggedWeeks.has(mondayStr)) {\r",
+                  "                const sundayStr = formatDate(addDays(monday, 6));\r",
+                  "                console.warn(`[Skip Week] Týden ${mondayStr} až ${sundayStr} BYL VYNECHÁN. Svátek v prac. den: ${formatDate(currentWorkingDay)} (${holidayName}).`);\r",
+                  "                loggedWeeks.add(mondayStr);\r",
+                  "            }\r",
+                  "            return false;\r",
+                  "        }\r",
+                  "    }\r",
+                  "    return true;\r",
+                  "}\r",
+                  "\r",
+                  "function isBusinessDay(date) {\r",
+                  "    const day = date.getUTCDay();\r",
+                  "    return day !== 0 && day !== 6;\r",
+                  "}\r",
+                  "\r",
+                  "// --- VÝPOČET TERMÍNU DOVOLENÉ ---\r",
+                  "let dateFromObj = null;\r",
+                  "let dateToObj = null;\r",
+                  "\r",
+                  "// Hledáme ucelený blok 5 po sobě jdoucích pracovních dnů v povolených týdnech\r",
+                  "let currentCheckDate = addDays(today, 1);\r",
+                  "\r",
+                  "while (dateFromObj === null) {\r",
+                  "    if (isWeekAllowed(currentCheckDate) && isBusinessDay(currentCheckDate)) {\r",
+                  "        let candidateFrom = new Date(currentCheckDate.getTime());\r",
+                  "        let candidateTo = new Date(currentCheckDate.getTime());\r",
+                  "        let daysFound = 1;\r",
+                  "        let isValidSequence = true;\r",
+                  "\r",
+                  "        while (daysFound < 5) {\r",
+                  "            candidateTo = addDays(candidateTo, 1);\r",
+                  "            if (isBusinessDay(candidateTo)) {\r",
+                  "                if (isWeekAllowed(candidateTo)) {\r",
+                  "                    daysFound++;\r",
+                  "                } else {\r",
+                  "                    isValidSequence = false;\r",
+                  "                    break;\r",
+                  "                }\r",
+                  "            }\r",
+                  "        }\r",
+                  "\r",
+                  "        if (isValidSequence && daysFound === 5) {\r",
+                  "            dateFromObj = candidateFrom;\r",
+                  "            dateToObj = candidateTo;\r",
+                  "        } else {\r",
+                  "            currentCheckDate = addDays(getMondayOfWeeksISO(candidateTo), 7);\r",
+                  "        }\r",
+                  "    } else {\r",
+                  "        if (!isWeekAllowed(currentCheckDate)) {\r",
+                  "            currentCheckDate = addDays(getMondayOfWeeksISO(currentCheckDate), 7);\r",
+                  "        } else {\r",
+                  "            currentCheckDate = addDays(currentCheckDate, 1);\r",
+                  "        }\r",
+                  "    }\r",
+                  "}\r",
+                  "\r",
+                  "validateYearRange(dateFromObj, \"Vypočtené dateFrom\");\r",
+                  "validateYearRange(dateToObj, \"Vypočtené dateTo\");\r",
+                  "\r",
+                  "const dateFromStr = formatDate(dateFromObj);\r",
+                  "const dateToStr = formatDate(dateToObj);\r",
+                  "\r",
+                  "// --- VERIFIKACE INVARIANTŮ (Tvrdé QA testování před uložením) ---\r",
+                  "let totalWorkingDays = 0;\r",
+                  "let checkDate = new Date(dateFromObj.getTime());\r",
+                  "while (checkDate.getTime() <= dateToObj.getTime()) {\r",
+                  "    if (isBusinessDay(checkDate)) {\r",
+                  "        totalWorkingDays++;\r",
+                  "    }\r",
+                  "    if (!isWeekAllowed(checkDate)) {\r",
+                  "        throw new Error(`[QA CRITICAL ERROR] Vygenerovaný interval obsahuje den v zakázaném týdnu: ${formatDate(checkDate)}!`);\r",
+                  "    }\r",
+                  "    checkDate = addDays(checkDate, 1);\r",
+                  "}\r",
+                  "\r",
+                  "if (totalWorkingDays !== 5) {\r",
+                  "    throw new Error(`[QA CRITICAL ERROR] Vygenerovaný rozsah neodpovídá přesně 5 pracovním dnům! Skutečnost: ${totalWorkingDays} dnů (${dateFromStr} -> ${dateToStr}).`);\r",
+                  "}\r",
+                  "\r",
+                  "// --- LOGOVÁNÍ HRANIČNÍCH PŘÍPADŮ DO KONZOLE ---\r",
+                  "console.log(`[QA Info] Vstupní testovací datum (dnes): ${formatDate(today)}`);\r",
+                  "console.log(`[QA Info] Výsledek úspěšně ověřen -> dateFrom: ${dateFromStr} | dateTo: ${dateToStr}`);\r",
+                  "\r",
+                  "let containsLeapDay = false;\r",
+                  "let leapCheck = new Date(dateFromObj.getTime());\r",
+                  "while (leapCheck.getTime() <= dateToObj.getTime()) {\r",
+                  "    if (leapCheck.getUTCFullYear() === 2028 && leapCheck.getUTCMonth() === 1 && leapCheck.getUTCDate() === 29) {\r",
+                  "        containsLeapDay = true;\r",
+                  "        break;\r",
+                  "    }\r",
+                  "    leapCheck = addDays(leapCheck, 1);\r",
+                  "}\r",
+                  "if (containsLeapDay) {\r",
+                  "    console.warn(`[Edge Case] Vygenerovaná data přímo obsahují přestupný den 29. února 2028.`);\r",
+                  "}\r",
+                  "\r",
+                  "if (dateFromObj.getUTCMonth() !== dateToObj.getUTCMonth()) {\r",
+                  "    console.warn(`[Edge Case] Detekován PŘELOM MĚSÍCE uvnitř vygenerovaného rozsahu.`);\r",
+                  "}\r",
+                  "\r",
+                  "// --- ULOŽENÍ DO LOKÁLNÍCH PROMĚNNÝCH POSTMANA ---\r",
+                  "pm.variables.set(\"dateFrom\", dateFromStr);\r",
+                  "pm.variables.set(\"dateTo\", dateToStr);\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('dayIndex', '0');",
+                  "pm.collectionVariables.unset('firstDay');",
+                  "pm.collectionVariables.unset('markedDays');",
+                  "",
+                  "// Nezávislé očekávání: pracovní dny (Po–Pá) od dateFrom do dateTo, počítáno v UTC",
+                  "function expectedBusinessDays(fromStr, toStr) {",
+                  "    const result = [];",
+                  "    const d = new Date(fromStr + \"T00:00:00Z\");",
+                  "    const end = new Date(toStr + \"T00:00:00Z\");",
+                  "    while (d.getTime() <= end.getTime()) {",
+                  "        const wd = d.getUTCDay();",
+                  "        if (wd !== 0 && wd !== 6) {",
+                  "            result.push(d.toISOString().slice(0, 10));",
+                  "        }",
+                  "        d.setUTCDate(d.getUTCDate() + 1);",
+                  "    }",
+                  "    return result;",
+                  "}",
+                  "",
+                  "pm.test('H1: zápis vrátil 200 a seznam dní', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const days = pm.response.json().MarkedDays;",
+                  "    pm.expect(days, 'MarkedDays chybí nebo je prázdné').to.be.an('array').that.is.not.empty;",
+                  "    pm.collectionVariables.set('firstDay', days[0]);",
+                  "    pm.collectionVariables.set('markedDays', JSON.stringify(days));",
+                  "});",
+                  "",
+                  "pm.test('H1: MarkedDays odpovídají nezávisle spočtenému očekávání', function () {",
+                  "    const dateFrom = pm.variables.get('dateFrom');",
+                  "    const dateTo = pm.variables.get('dateTo');",
+                  "    pm.expect(dateFrom, 'dateFrom chybí (neběžel pre-request?)').to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+                  "    pm.expect(dateTo, 'dateTo chybí (neběžel pre-request?)').to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+                  "    const expected = expectedBusinessDays(dateFrom, dateTo);",
+                  "    //expected.pop();   // SABOTÁŽ – po běhu smazat",
+                  "    const days = pm.response.json().MarkedDays;",
+                  "    pm.expect(days, 'MarkedDays=' + JSON.stringify(days) + ' očekáváno=' + JSON.stringify(expected)).to.eql(expected);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PersonId\": \"{{personId}}\",\n  \"DateFrom\": \"{{dateFrom}}\",\n  \"DateTo\": \"{{dateTo}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Vacation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "Vacation"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "V2 smyčka",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const days = JSON.parse(pm.collectionVariables.get(\"markedDays\") || \"[]\");",
+                  "const i = Number(pm.collectionVariables.get(\"dayIndex\")) || 0;",
+                  "const day = pm.collectionVariables.get(\"currentDay\");",
+                  "",
+                  "pm.test(\"V2: status je 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"V2: den z MarkedDays je zapsaný (IsVacation true)\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.Date, \"odpověď neobsahuje Date\").to.be.a(\"string\");",
+                  "    pm.expect(body.Date).to.equal(day);",
+                  "    pm.expect(body.IsVacation, \"den \" + day + \" (index \" + i + \")\").to.be.true;",
+                  "});",
+                  "",
+                  "if (i + 1 < days.length) {",
+                  "    pm.collectionVariables.set(\"dayIndex\", String(i + 1));",
+                  "    pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.collectionVariables.unset(\"dayIndex\");",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const days = JSON.parse(pm.collectionVariables.get(\"markedDays\") || \"[]\");\r",
+                  "if (days.length === 0) {\r",
+                  "    throw new Error(\"markedDays je prázdné nebo chybí – nejdřív spusť H1\");\r",
+                  "}\r",
+                  "const i = Number(pm.collectionVariables.get(\"dayIndex\")) || 0;\r",
+                  "pm.collectionVariables.set(\"currentDay\", days[i]);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/VacationCheck?personId={{personId}}&date={{currentDay}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "VacationCheck"
+              ],
+              "query": [
+                {
+                  "key": "personId",
+                  "value": "{{personId}}"
+                },
+                {
+                  "key": "date",
+                  "value": "{{currentDay}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ruční sonda",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"POST: status je 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"POST: počet zapsaných dnů odpovídá tabulce\", function () {",
+              "    const days = pm.response.json().MarkedDays;",
+              "    pm.expect(days, \"MarkedDays chybí\").to.be.an(\"array\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"PersonId\":\"{{personId}}\",\"DateFrom\":\"{{date}}\",\"DateTo\":\"{{date}}\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/Vacation",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "Vacation"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ruční sonda",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code je 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// V1: IsVacation: true, DayOfWeekCz: pondělí",
+              "pm.test('Response má očekávanou strukturu', function () {",
+              "    const body = pm.response.json();",
+              "    if (pm.response.code === 200) {",
+              "        pm.expect(body).to.have.property('Date');",
+              "        pm.expect(body).to.have.property('DayOfWeekCz');",
+              "        pm.expect(body).to.have.property('IsVacation');",
+              "    }",
+              "});",
+              "",
+              "// POZOR: tento scénář závisí na H1 – spustit až po něm"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/VacationCheck?personId={{personId}}&date={{date}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "VacationCheck"
+          ],
+          "query": [
+            {
+              "key": "personId",
+              "value": "{{personId}}"
+            },
+            {
+              "key": "date",
+              "value": "{{date}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://nakitvacation.azurewebsites.net"
+    },
+    {
+      "key": "personId",
+      "value": "RP101"
+    },
+    {
+      "key": "firstDay",
+      "value": ""
+    },
+    {
+      "key": "markedDays",
+      "value": ""
+    },
+    {
+      "key": "ddtPerson",
+      "value": ""
+    },
+    {
+      "key": "currentDay",
+      "value": ""
+    }
+  ]
+}
