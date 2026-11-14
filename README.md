@@ -53,6 +53,11 @@ and how they were caught, are in [`docs/ai-review-notes.md`](docs/ai-review-note
 
 ---
 
+## Licence
+
+Výukové API, zveřejnění potvrzeno zadavatelem.
+
+---
 **CZ shrnutí:** Postman/Chai sada pro API evidence dovolené – DDT regresní tabulka (217 testů, 21 očekávaných
 červených = 3 známé vady), dynamická data v pre-requestu, chaining se smyčkou, nezávislý oracle a sabotážní
 kontrola, důkazy z reálných běhů. Zaměřeno na kritickou kontrolu výstupů AI.
