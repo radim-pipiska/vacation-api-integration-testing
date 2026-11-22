@@ -58,7 +58,7 @@ and how they were caught, are in [`docs/ai-review-notes.md`](docs/ai-review-note
 Kromě samotných testovacích kolekcí zde sdílím konkrétní technické situace z testování REST API, jejich analýzu a řešení:
 
 * [Skrytá past v podobě case-sensitivity proměnných a stavovosti dat v Postmanovi](https://github.com/radim-pipiska/soapui-calculator-wsdl-testing/blob/main/docs/postman-silent-failure-unresolved-variable.md)
-  * **Problém:** Překlep ve velikosti písmen (`{{PersonId}}` vs. `personId`) způsobil odeslání doslovného textu proměnné. API takový text přijalo a výsledek stejného DDT běhu se měnil podle stavu dat v API (`výsledek z 12:32 podle evidence byl 160/160]` místo 17 červených testů při správné proměnné). Vysvětlení stavem dat v API je zatím hypotéza.
+  * **Problém:** Překlep ve velikosti písmen (`{{PersonId}}` vs. `personId`) způsobil odeslání doslovného textu proměnné. API takový text přijalo a výsledek stejného DDT běhu se měnil podle stavu dat v API (výsledek z 12:32 podle evidence byl `160/160` místo 17 červených testů při správné proměnné). Vysvětlení stavem dat v API je zatím hypotéza.
   * **Řešení a ověření:** Hlídač nenahrazených proměnných (Pre-request + Test, fail-safe). Odolnost jsem ověřil řízenou sabotáží na cvičné kopii kolekce. Do kolekce v tomto repozitáři zatím přenesen a ověřen není. Součástí studie je i otázka na analytika, zda má API přijmout libovolný text jako `PersonId`.
 
 ---
